@@ -5,6 +5,8 @@ const dbConnect = require("./db/dbConnect");
 const UserRouter = require("./routes/UserRouter");
 const PhotoRouter = require("./routes/PhotoRouter");
 
+const dbLoad = require("./db/dbLoad");
+
 dbConnect();
 
 app.use(cors());

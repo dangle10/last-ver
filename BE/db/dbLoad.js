@@ -10,14 +10,7 @@ const SchemaInfo = require("../db/schemaInfo.js");
 const versionString = "1.0";
 
 async function dbLoad() {
-  try {
-    await mongoose.connect(process.env.DB_URL);
-    console.log("Successfully connected to MongoDB Atlas!");
-  } catch (error) {
-    console.error("Unable connecting to MongoDB Atlas!");
-    console.error(error);
-    process.exit(1);
-  }
+  // Connection already established in dbConnect.js
 
   await User.deleteMany({});
   await Photo.deleteMany({});
@@ -97,7 +90,7 @@ async function dbLoad() {
   } catch (error) {
     console.error("Error create schemaInfo", error);
   }
-  mongoose.disconnect();
+  // mongoose.disconnect(); // Remove disconnect to keep connection open
 }
 
 dbLoad();

@@ -11,7 +11,7 @@ function TopBar({ context, advancedFeature, setAdvancedFeature }) {
     <AppBar className="topbar-appBar" position="static">
       <Toolbar className="topbar-toolbar">
         <Typography variant="h6" className="topbar-title">
-          Nam Tran
+          Le Hai Dang
         </Typography>
         <div className="topbar-right">
           <FormControlLabel
