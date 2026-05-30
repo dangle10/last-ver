@@ -7,6 +7,7 @@ import {
   CardContent,
   Divider,
   Button,
+  TextField, // Import thêm TextField
 } from "@mui/material";
 import { useParams, Link, useNavigate } from "react-router-dom";
 
@@ -23,13 +24,16 @@ function UserPhotos({ advancedFeature, setTopBarContext }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // State mới: Lưu trữ nội dung bình luận đang gõ cho từng bức ảnh
+  const [newComments, setNewComments] = useState({});
+
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
 
     Promise.all([
-      fetchModel(`/user/${userId}`),
-      fetchModel(`/photosOfUser/${userId}`),
+      fetchModel(`http://localhost:8081/user/${userId}`), // Thêm http://localhost:8081 nếu fetchModel của bạn chưa cấu hình base URL
+      fetchModel(`http://localhost:8081/photosOfUser/${userId}`),
     ])
       .then(([userRes, photosRes]) => {
         if (isMounted) {
@@ -55,6 +59,39 @@ function UserPhotos({ advancedFeature, setTopBarContext }) {
       isMounted = false;
     };
   }, [userId, setTopBarContext]);
+
+  // Hàm xử lý thay đổi chữ trong ô nhập liệu
+  const handleCommentChange = (photoId, text) => {
+    setNewComments((prev) => ({ ...prev, [photoId]: text }));
+  };
+
+  // Hàm xử lý gửi bình luận lên Server
+  const handleAddComment = async (photoId) => {
+    const text = newComments[photoId];
+    if (!text || text.trim() === "") return;
+
+    try {
+      const response = await fetch(`http://localhost:8081/commentsOfPhoto/${photoId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comment: text }),
+        credentials: "include", // Phải có để gửi kèm session (nhận diện user)
+      });
+
+      if (response.ok) {
+        // 1. Xóa trắng ô nhập liệu của ảnh đó
+        setNewComments((prev) => ({ ...prev, [photoId]: "" }));
+        
+        // 2. Tải lại dữ liệu ảnh để bình luận mới hiện ra ngay lập tức
+        const photosRes = await fetchModel(`http://localhost:8081/photosOfUser/${userId}`);
+        setPhotos(photosRes.data);
+      } else {
+        console.error("Lỗi khi đăng bình luận");
+      }
+    } catch (error) {
+      console.error("Lỗi mạng khi đăng bình luận:", error);
+    }
+  };
 
   if (loading || !user) {
     return <Typography>Loading photos...</Typography>;
@@ -87,7 +124,7 @@ function UserPhotos({ advancedFeature, setTopBarContext }) {
       />
       <CardMedia
         component="img"
-        image={require(`../../images/${photo.file_name}`)}
+        image={`http://localhost:8081/images/${photo.file_name}`}
         alt={photo.file_name}
       />
       <CardContent>
@@ -110,6 +147,32 @@ function UserPhotos({ advancedFeature, setTopBarContext }) {
             No comments yet.
           </Typography>
         )}
+
+        {/* ---------------- THÊM KHU VỰC NHẬP BÌNH LUẬN ---------------- */}
+        <Divider style={{ margin: "15px 0" }} />
+        <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+          <TextField
+            size="small"
+            fullWidth
+            variant="outlined"
+            placeholder="Viết bình luận..."
+            value={newComments[photo._id] || ""}
+            onChange={(e) => handleCommentChange(photo._id, e.target.value)}
+            multiline
+            maxRows={3}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => handleAddComment(photo._id)}
+            disabled={!newComments[photo._id] || newComments[photo._id].trim() === ""}
+            style={{ marginTop: "2px" }}
+          >
+            Đăng
+          </Button>
+        </div>
+        {/* ------------------------------------------------------------- */}
+
       </CardContent>
     </Card>
   );

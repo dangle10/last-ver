@@ -10,6 +10,7 @@ async function fetchModel(url) {
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
   });
 
   let payload = null;

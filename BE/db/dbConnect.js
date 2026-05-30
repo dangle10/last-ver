@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
-require("dotenv").config({ path: './BE/.env' });
+
+// Dùng __dirname để đường dẫn luôn đúng bất kể bạn chạy lệnh ở thư mục nào
+require("dotenv").config({ path: __dirname + '/../.env' });
 
 async function dbConnect() {
   try {
